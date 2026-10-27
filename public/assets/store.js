@@ -491,43 +491,74 @@ function galleryBody(p){
   if(g==='steps') return stepsArt(p);
   return `<div class="video"><span class="play">${ico.play}</span><b style="color:var(--ink)">ویدیوی مونتاژ ${p.name}</b><span>۴۰ ثانیه، به‌زودی</span></div>`;
 }
+const FAV_KEY='majoo-fav';
+let FAV=[]; try{FAV=JSON.parse(localStorage.getItem(FAV_KEY)||'[]')}catch(e){}
+const saveFav=()=>{try{localStorage.setItem(FAV_KEY,JSON.stringify(FAV))}catch(e){}};
+const icoExt=`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>`;
+const icoHeart=`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-10A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/></svg>`;
+const icoShield=`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8-7 10-4-2-7-5.4-7-10V6z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg>`;
+const icoMedia=`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4M8.5 9.2h.01"/></svg>`;
+const icoCube=`<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>`;
+function mediaList(p){
+  const m=[]; p.images.forEach((src,i)=>m.push({k:'photo',i,src,label:`عکس ${fa(i+1)}`}));
+  if(HAS3D) m.push({k:'3d',label:'سه‌بعدی'});
+  m.push({k:'img',label:'تصویر'},{k:'parts',label:'قطعات جدا'},{k:'steps',label:'مراحل مونتاژ'},{k:'video',label:'ویدیو'});
+  return m;
+}
+const mediaOn=(m)=>S.gal===m.k&&(m.k!=='photo'||(((S.img%(byId(+location.hash.slice(2))?.images.length||1))+(byId(+location.hash.slice(2))?.images.length||1))%(byId(+location.hash.slice(2))?.images.length||1))===m.i);
+function thumbInner(p,m){
+  if(m.k==='photo') return `<img src="${m.src}" alt="${m.label}" loading="lazy">`;
+  if(m.k==='img') return art(p.type);
+  if(m.k==='3d') return `<span class="tg">${icoCube}<small>سه‌بعدی</small></span>`;
+  if(m.k==='video') return `<span class="tg">${ico.play}<small>ویدیو</small></span>`;
+  return `<span class="tg"><small>${m.label}</small></span>`;
+}
+function syncThumbs(){ const p=byId(+location.hash.slice(2)); if(!p) return; const ms=mediaList(p);
+  document.querySelectorAll('.gthumbs [data-gal]').forEach((b,i)=>{ const on=mediaOn(ms[i]); b.setAttribute('aria-pressed',on); if(on&&innerWidth<860) b.scrollIntoView({block:'nearest',inline:'center'}); }); }
 function gallery(p){
-  const tabs=[...(p.images.length?[['photo','عکس‌ها']]:[]),...(HAS3D?[['3d','سه‌بعدی']]:[]),['img','تصویر'],['parts','قطعات جدا'],['steps','مراحل مونتاژ'],['video','ویدیو']];
-  return `<div class="stage" id="gstage">${galleryBody(p)}</div>
-    <div class="gtabs" role="group" aria-label="گالری">${tabs.map(([k,n])=>`<button data-gal="${k}" aria-pressed="${S.gal===k}">${n}</button>`).join('')}</div>`;
+  const ms=mediaList(p);
+  return `<div class="gthumbs" role="group" aria-label="رسانه‌های محصول">${ms.map((m,i)=>`<button data-gal="${m.k}" ${m.k==='photo'?`data-set="${m.i}"`:''} aria-label="${m.label}" aria-pressed="${mediaOn(m)}">${thumbInner(p,m)}</button>`).join('')}</div>
+   <div class="gmain"><div class="stage" id="gstage">${galleryBody(p)}</div><button class="allmedia" data-allmedia>${icoMedia}<span>همه‌ی رسانه‌ها</span></button></div>`;
 }
 function mountGallery(p){ killViewers(); if(S.gal==='3d') mountStage('pdStage',p.type,{auto:true}); }
+function openAllMedia(p){
+  const ms=mediaList(p);
+  $('#layer').innerHTML=`<div class="scrim" data-close></div><div class="sheet wide" role="dialog" aria-modal="true" aria-label="همه‌ی رسانه‌ها">
+   <button class="iconbtn x" data-close aria-label="بستن">✕</button>
+   <h2 style="font-size:20px;margin-bottom:14px">همه‌ی رسانه‌ها · ${p.name}</h2>
+   <div class="mgrid">${ms.map(m=>`<button class="mtile" data-gal="${m.k}" ${m.k==='photo'?`data-set="${m.i}"`:''} data-close>${thumbInner(p,m)}<span>${m.label}</span></button>`).join('')}</div></div>`;
+  document.body.style.overflow='hidden';
+}
 function vProduct(id){
   const p=byId(id); if(!p) return vProducts();
   const comp=p.compat.map(byId).filter(Boolean);
+  const same=P.filter(q=>q.cat===p.cat&&q.id!==p.id&&!p.compat.includes(q.id)).slice(0,6);
+  const dims=`${fa(p.w)}×${fa(p.d)}×${fa(p.h)} سانتی‌متر`;
+  const code=`MK-${String(p.id).padStart(3,'0')}`;
+  const fav=FAV.includes(p.id);
+  const wall=['hex','key','wallfold'].includes(p.type);
+  const card=c=>`<a href="#p${c.id}">${c.images&&c.images[0]?`<img src="${c.images[0]}" alt="" loading="lazy">`:art(c.type)}<span>${c.name}<small>${fa(c.price)} تومان</small></span></a>`;
   return `<div class="wrap">
-   <nav class="crumbs" aria-label="مسیر"><a href="#home">خانه</a>›<a href="#products" data-cat="${p.cat}">${CATS[p.cat]}</a>›<span>${p.name}</span></nav>
+   <nav class="crumbs" aria-label="مسیر"><a href="#products" data-cat="all">محصولات</a><i>›</i><a href="#products" data-cat="${p.cat}">${CATS[p.cat]}</a><i>›</i><span aria-current="page">${p.name}</span></nav>
    <div class="pd enter">
     <div class="gallery" id="gal">${gallery(p)}</div>
     <div class="pinfo">
-      ${p.exp?`<span class="xbadge inline" style="justify-self:start">+ قابل توسعه</span>`:''}
-      <h1>${p.name}</h1>
-      <p class="lead" style="font-size:15px">${p.use}</p>
-      <div class="price" style="font-size:26px">${toman(p.price)}</div>
-      <div class="buy" id="buyMain"><div class="qty"><button data-pq="-1" aria-label="کمتر">−</button><output id="pq" class="num">${fa(S.qty)}</output><button data-pq="1" aria-label="بیشتر">+</button></div>${p.inStock?`<button class="btn olive" data-add="${p.id}">افزودن به سبد</button>`:`<a class="btn ghost" href="${waLink(`سلام، «${p.raw.name}» کی موجود می‌شود؟`)}" target="_blank" rel="noopener">ناموجود؛ خبرم کنید</a>`}</div>
-      ${p.description?`<p class="pdesc">${p.description.replace(/\n/g,'<br>')}</p>`:''}
+      <a class="serieslink" href="#products" data-cat="${p.cat}">بیشتر از دسته‌ی ${CATS[p.cat]}</a>
+      <div class="ptitle"><div><h1>${p.name}</h1><p class="psub">${p.use} <a class="dimlink" href="#measure">${dims}</a></p></div>
+        <button class="heart" data-fav="${p.id}" aria-pressed="${fav}" aria-label="علاقه‌مندی">${icoHeart}</button></div>
+      <div class="pprice"><b class="num">${fa(p.price)}</b><span>تومان</span></div>
+      <div class="prate">${stars(p.diff)}<span>مونتاژ ${DIFF[p.diff]} · حدود ${fa(p.time)} دقیقه</span>${p.exp?`<span class="xbadge inline">+ قابل توسعه</span>`:''}</div>
+      <div class="opt"><b>جنس و رنگ</b><span class="optv">MDF طبیعی</span>
+        <div class="swatches"><button class="sw on" aria-pressed="true" aria-label="MDF طبیعی"><i></i></button></div></div>
+      <a class="rowlink" href="#custom"><span><b>خودت طراحی کن</b><small>ترکیب ماژول‌ها با ابزار طراحی ماجوکیت</small></span>${icoExt}</a>
+      <div class="getit"><b>چطور تحویل بگیرم</b><a class="avail" href="${waLink(`سلام، ارسال «${p.raw.name}» به شهر من چقدر زمان می‌برد؟`)}" target="_blank" rel="noopener"><i class="dot ${p.inStock?'ok':'no'}"></i>${p.inStock?'موجود است · بررسی زمان و هزینه‌ی ارسال به شهر شما':'فعلاً ناموجود · خبرم کنید'}</a></div>
+      <div class="buy" id="buyMain"><div class="qty"><button data-pq="-1" aria-label="کمتر">−</button><output id="pq" class="num">${fa(S.qty)}</output><button data-pq="1" aria-label="بیشتر">+</button></div>${p.inStock?`<button class="btn olive pbag" data-add="${p.id}"><span>افزودن به سبد</span></button>`:`<a class="btn ghost" href="${waLink(`سلام، «${p.raw.name}» کی موجود می‌شود؟`)}" target="_blank" rel="noopener">ناموجود؛ خبرم کنید</a>`}</div>
       ${HAS3D?`<button class="arcta" data-ar="${p.id}"><span class="ic">${ico.ar}</span><span><b>در اتاق خودت ببین</b><small>عکس بگیر، کیت را رویش بچین و از نتیجه عکس بگیر</small></span></button>`:''}
-      <ul class="assure"><li>${ico.tick} ارسال به همه‌ی شهرها با بسته‌بندی تخت</li><li>${ico.tick} ضمانت قطعه: قطعه‌ی آسیب‌دیده را رایگان می‌فرستیم</li><li>${ico.tick} پشتیبانی واتس‌اپ حتی وسط مونتاژ</li></ul>
-      <details class="acc" open><summary>مشخصات و ابعاد</summary>
-      <dl class="specs">
-        <div><dt>جنس</dt><dd>MDF ۱۶ میلی‌متر، برش CNC</dd></div>
-        <div><dt>ابعاد (عرض×عمق×ارتفاع)</dt><dd class="num">${fa(p.w)}×${fa(p.d)}×${fa(p.h)} سانتی‌متر</dd></div>
-        <div><dt>قابل توسعه</dt><dd>${p.exp?'بله':'خیر'}</dd></div>
-        <div><dt>قطعات</dt><dd>${fa(p.parts)} قطعه</dd></div>
-      </dl></details>
-      <details class="acc"><summary>مونتاژ</summary>
-      <dl class="specs">
-        <div><dt>زمان</dt><dd>حدود ${fa(p.time)} دقیقه</dd></div>
-        <div><dt>سختی</dt><dd>${stars(p.diff)} ${DIFF[p.diff]}</dd></div>
-        <div><dt>ابزار</dt><dd>داخل بسته (آچار آلن)${['hex','key','wallfold'].includes(p.type)?' + دریل برای نصب دیواری':''}</dd></div>
-      </dl>
-      <a class="btn ghost" href="#guide" data-guide="${p.id}" style="margin-top:12px">دفترچه و ویدیوی مونتاژ</a></details>
-      <a class="link asklink" href="${waLink(`سلام ماجوکیت، درباره‌ی «${p.raw.name}» سؤال دارم.`)}" target="_blank" rel="noopener">سؤال داری؟ در واتس‌اپ بپرس ←</a>
+      <div class="pbox">
+        <div class="pbx"><b>ضمانت قطعه ${icoShield}</b><p>قطعه‌ی آسیب‌دیده یا کم‌شده را رایگان می‌فرستیم. عکسش را در واتس‌اپ بفرست.</p></div>
+        <div class="pbx"><b>پشتیبانی وسط مونتاژ</b><p>اگر جایی گیر کردی، در واتس‌اپ بپرس. <a class="link" href="${waLink(`سلام ماجوکیت، درباره‌ی «${p.raw.name}» سؤال دارم.`)}" target="_blank" rel="noopener">شروع گفتگو</a></p></div>
+      </div>
+      <div class="pays"><b>روش پرداخت</b><p>پرداخت هنگام هماهنگی سفارش در واتس‌اپ انجام می‌شود.</p></div>
       ${SET.show_reference==='1'&&p.ref[2]?`<div class="refticket">
         <div class="rt-h"><span class="rt-badge">تیکت مرجع</span><b>IKEA ${p.ref[0]}</b><small>${p.ref[1]}</small></div>
         <p>عکس‌ها، ویدیو، مشخصات، اطلاعات بسته‌بندی و PDF مونتاژ محصول مشابه را در صفحه‌ی ایکیا ببینید. محتوای ماجوکیت این کیت در همین سطح تولید می‌شود.</p>
@@ -535,8 +566,36 @@ function vProduct(id){
       </div>`:''}
     </div>
    </div>
-   ${comp.length?`<div class="connects"><h2>این کیت وصل می‌شود به:</h2><p>${p.exp?'با همان پیچ‌ها و سوراخ‌کاری استاندارد ماجوکیت، این کیت‌ها کنار یا روی هم سوار می‌شوند.':'این کیت‌ها کنار هم یک مجموعه‌ی هماهنگ می‌سازند.'}</p>
-     <div class="mini">${comp.map(c=>`<a href="#p${c.id}">${art(c.type)}<span>${c.name}<small>${fa(c.price)} تومان</small></span></a>`).join('')}</div></div>`:''}
+   <section class="pdetails">
+    <details class="acc" open><summary>معرفی</summary><div class="accb">
+      ${p.description?`<p class="pdesc">${p.description.replace(/\n/g,'<br>')}</p>`:`<p class="pdesc">${p.use}</p>`}
+      <p class="code">کد محصول <b class="num">${code}</b></p></div></details>
+    <details class="acc"><summary>جزئیات محصول</summary><div class="accb"><dl class="specs">
+      <div><dt>جنس</dt><dd>MDF ۱۶ میلی‌متر، برش CNC</dd></div>
+      <div><dt>قابل توسعه</dt><dd>${p.exp?'بله، با پیچ و سوراخ‌کاری استاندارد ماجوکیت':'خیر'}</dd></div>
+      <div><dt>مراقبت</dt><dd>با پارچه‌ی نرم و کمی نمدار پاک کنید. از آب مستقیم دور نگه دارید.</dd></div>
+      <div><dt>محل استفاده</dt><dd>فضای داخلی خانه و دفتر</dd></div></dl></div></details>
+    <details class="acc" id="measure"><summary>ابعاد</summary><div class="accb"><dl class="specs">
+      <div><dt>عرض</dt><dd class="num">${fa(p.w)} سانتی‌متر</dd></div>
+      <div><dt>عمق</dt><dd class="num">${fa(p.d)} سانتی‌متر</dd></div>
+      <div><dt>ارتفاع</dt><dd class="num">${fa(p.h)} سانتی‌متر</dd></div></dl></div></details>
+    <details class="acc"><summary>مونتاژ و دفترچه</summary><div class="accb"><dl class="specs">
+      <div><dt>زمان</dt><dd>حدود ${fa(p.time)} دقیقه</dd></div>
+      <div><dt>سختی</dt><dd>${stars(p.diff)} ${DIFF[p.diff]}</dd></div>
+      <div><dt>تعداد قطعات</dt><dd>${fa(p.parts)} قطعه</dd></div>
+      <div><dt>ابزار</dt><dd>داخل بسته (آچار آلن)${wall?' + دریل برای نصب دیواری':''}</dd></div></dl>
+      <a class="btn ghost" href="#guide" data-guide="${p.id}">دفترچه و ویدیوی مونتاژ</a></div></details>
+    <details class="acc"><summary>خوب است بدانید</summary><div class="accb"><ul class="know">
+      <li>MDF استاندارد برای فضای داخلی مناسب است؛ برای حمام و بالکن باز توصیه نمی‌کنیم.</li>
+      <li>پیچ‌ها را اول نیمه‌سفت ببندید و آخر کار، وقتی بدنه گونیا شد، سفت کنید.</li>
+      ${wall?'<li>برای نصب روی دیوار، پیچ و رولپلاک متناسب با جنس دیوار را جداگانه تهیه کنید.</li>':''}</ul></div></details>
+    <details class="acc"><summary>بسته‌بندی</summary><div class="accb"><dl class="specs">
+      <div><dt>نوع بسته</dt><dd>بسته‌ی تخت</dd></div>
+      <div><dt>تعداد قطعات</dt><dd>${fa(p.parts)} قطعه، با کیسه‌ی پیچ شماره‌دار</dd></div></dl></div></details>
+   </section>
+   ${comp.length?`<section class="pcar"><div class="connects"><h2>لوازم جانبی و کیت‌های سازگار</h2><p>${p.exp?'با همان پیچ‌ها و سوراخ‌کاری استاندارد ماجوکیت، این کیت‌ها کنار یا روی هم سوار می‌شوند.':'این کیت‌ها کنار هم یک مجموعه‌ی هماهنگ می‌سازند.'}</p>
+     <div class="mini">${comp.map(card).join('')}</div></div></section>`:''}
+   ${same.length?`<section class="pcar"><h2 class="sec">بیشتر از دسته‌ی ${CATS[p.cat]}</h2><div class="mini flat">${same.map(card).join('')}</div></section>`:''}
    <div style="height:24px"></div>
   </div>`;
 }
@@ -851,7 +910,7 @@ document.addEventListener('click',e=>{
   if(t.id==='arShutter'){ takeShot(); return; }
   if(t.id==='arLive'){ startLive(); return; }
   if(t.id==='sendOrder'){ submitOrder(t); return; }
-  if(t.dataset.img){ S.img+=(+t.dataset.img); $('#gstage').innerHTML=galleryBody(byId(+location.hash.slice(2))); return; }
+  if(t.dataset.img){ S.img+=(+t.dataset.img); $('#gstage').innerHTML=galleryBody(byId(+location.hash.slice(2))); syncThumbs(); return; }
   if(t.dataset.lead){ api('/api/leads',{kind:t.dataset.lead}).catch(()=>{}); }
   if(t.id==='arThumb'&&AR&&AR.shots.length){ showShot(0); return; }
   if(t.hasAttribute('data-explode')){ const on=t.getAttribute('aria-pressed')!=='true'; t.setAttribute('aria-pressed',on); const host=t.closest('.stage3d'); const v=viewerIn(host); if(v){v.explode(on); host.dispatchEvent(new Event('interact'));} t.querySelector('span').textContent=on?'جمع کردن':'نمای انفجاری'; return; }
@@ -864,9 +923,12 @@ document.addEventListener('click',e=>{
   if(t.id==='fclear'){ S.f=fresh(); S.q=''; $('#q').value=''; fillProducts(); return; }
   if(t.dataset.unf){ S.f[t.dataset.unf]='all'; fillProducts(); return; }
   if(t.id==='openFilters'){ openFilters(); return; }
-  if(t.dataset.gal){ S.gal=t.dataset.gal; const p=byId(+location.hash.slice(2)); killViewers(); const gs=$('#gstage'); gs.innerHTML=galleryBody(p); gs.animate([{opacity:.3,transform:'scale(.98)'},{opacity:1,transform:'none'}],{duration:300,easing:'ease-out'}); document.querySelectorAll('[data-gal]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.gal===S.gal)); mountGallery(p); return; }
+  if(t.dataset.gal){ S.gal=t.dataset.gal; if(t.dataset.set!=null) S.img=+t.dataset.set; const p=byId(+location.hash.slice(2)); killViewers(); const gs=$('#gstage'); gs.innerHTML=galleryBody(p); gs.animate([{opacity:.3,transform:'scale(.98)'},{opacity:1,transform:'none'}],{duration:300,easing:'ease-out'}); syncThumbs(); mountGallery(p); if(t.hasAttribute('data-close')) setTimeout(closeLayer,0); return; }
+  if(t.hasAttribute('data-allmedia')){ openAllMedia(byId(+location.hash.slice(2))); return; }
+  if(t.dataset.fav){ const id=+t.dataset.fav, i=FAV.indexOf(id); if(i<0) FAV.push(id); else FAV.splice(i,1); saveFav(); t.setAttribute('aria-pressed',i<0); toast(i<0?'به علاقه‌مندی‌ها اضافه شد':'از علاقه‌مندی‌ها برداشته شد'); return; }
+  if(t.getAttribute('href')==='#measure'){ e.preventDefault(); const d=$('#measure'); d.open=true; d.scrollIntoView({behavior:RM?'auto':'smooth',block:'center'}); return; }
   if(t.dataset.pq){ S.qty=Math.max(1,S.qty+(+t.dataset.pq)); const o=$('#pq'); o.textContent=fa(S.qty); o.classList.remove('roll'); void o.offsetWidth; o.classList.add('roll'); return; }
-  if(t.dataset.add){ const id=+t.dataset.add; const q=t.hasAttribute('data-one')?1:S.qty; S.cart[id]=(S.cart[id]||0)+q; save(); flyToCart(t.closest('.pcard')?.querySelector('.ph')||$('#gstage')||t,byId(id)); setTimeout(()=>counts(true),RM?0:650); updateWa(); toast(`«${byId(id).raw.name}» به سبد اضافه شد`); return; }
+  if(t.dataset.add){ const id=+t.dataset.add; const q=t.hasAttribute('data-one')?1:S.qty; S.cart[id]=(S.cart[id]||0)+q; save(); flyToCart(t.closest('.pcard')?.querySelector('.ph')||$('#gstage')||t,byId(id)); setTimeout(()=>counts(true),RM?0:650); updateWa(); toast(`«${byId(id).raw.name}» به سبد اضافه شد`); if(t.classList.contains('pbag')){ const sp=t.querySelector('span'); t.classList.add('done'); sp.textContent='✓ به سبد اضافه شد'; setTimeout(()=>{t.classList.remove('done'); sp.textContent='افزودن به سبد';},1700); } return; }
   if(t.dataset.cq){ const id=+t.dataset.cq; S.cart[id]=Math.max(0,(S.cart[id]||0)+(+t.dataset.d)); if(!S.cart[id]) delete S.cart[id]; save(); const keep={name:$('#oname')?.value,phone:$('#ophone')?.value,city:$('#ocity')?.value,note:$('#onote')?.value}; route(); if(keep.name!=null){for(const k of ['name','phone','city','note']) $('#o'+k).value=keep[k]||'';} return; }
   if(t.id==='menuBtn'){ openMenu(); return; }
   if(t.id==='copyNum'){ navigator.clipboard?.writeText(waShow()).then(()=>toast('شماره کپی شد'),()=>toast('شماره را انتخاب و کپی کن')); return; }
@@ -889,6 +951,10 @@ function syncOrder(){}
 document.addEventListener('submit',e=>{ e.preventDefault(); if(e.target.id==='notify'){ api('/api/leads',{kind:'custom-notify',phone:toLatin($('#nphone').value)}).then(()=>{toast('ثبت شد. وقتی آماده شد خبرت می‌کنیم.'); e.target.reset();},err=>toast(err.message)); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if($('#shotView')) $('#shotView').remove(); else if(AR) closeAR(); else closeLayer(); } });
 window.addEventListener('hashchange',route);
+/* ===== photo zoom ===== */
+document.addEventListener('click',e=>{ const ph=e.target.closest('.photos'); if(!ph||e.target.closest('button')) return; ph.classList.toggle('zoom'); const im=ph.querySelector('img'); if(!ph.classList.contains('zoom')) im.style.transformOrigin=''; else { const r=ph.getBoundingClientRect(); im.style.transformOrigin=`${(e.clientX-r.left)/r.width*100}% ${(e.clientY-r.top)/r.height*100}%`; } });
+document.addEventListener('pointermove',e=>{ const ph=e.target.closest?.('.photos.zoom'); if(!ph||e.pointerType==='touch') return; const r=ph.getBoundingClientRect(); ph.querySelector('img').style.transformOrigin=`${(e.clientX-r.left)/r.width*100}% ${(e.clientY-r.top)/r.height*100}%`; });
+
 
 (async function boot(){
   try{
