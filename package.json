@@ -1,0 +1,14 @@
+{
+  "name": "majookit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MajooKit — modular MDF DIY furniture storefront (Persian, RTL) with 3D/AR preview and an admin panel",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "node --watch --disable-warning=ExperimentalWarning src/server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/api.test.js"
+  },
+  "engines": { "node": ">=22.5" },
+  "license": "UNLICENSED"
+}

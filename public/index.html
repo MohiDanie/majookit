@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ماجوکیت | کیت‌های ماژولار MDF</title>
+<meta name="description" content="ماجوکیت: کیت‌های ماژولار MDF برای خانه‌های ایرانی. خودت بساز، هر وقت خواستی گسترشش بده. سه‌بعدی ببین و در اتاق خودت امتحان کن.">
+<meta name="theme-color" content="#FFFFFF">
+<meta property="og:title" content="ماجوکیت | خودت بساز، به سبک خودت">
+<meta property="og:description" content="کیت‌های ماژولار MDF، مونتاژ آسان، قیمت شفاف">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap">
+<link rel="stylesheet" href="/assets/store.css">
+</head>
+<body>
+<div class="announce" id="announce" hidden></div>
+<header>
+  <div class="wrap hbar">
+    <a class="logo" href="#home" aria-label="ماجوکیت، صفحه‌ی اصلی">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="16" height="16" rx="2" fill="var(--mdf)" stroke="var(--mdf-e)" stroke-width="3"/><rect x="21" y="3" width="16" height="16" rx="2" fill="var(--mdf)" stroke="var(--mdf-e)" stroke-width="3"/><rect x="3" y="21" width="16" height="16" rx="2" fill="var(--mdf)" stroke="var(--mdf-e)" stroke-width="3"/><path class="plus" d="M29 23v12M23 29h12" stroke="var(--olive)" stroke-width="3.5" stroke-linecap="round"/></svg>
+      <span>ماجوکیت<small>MAJOOKIT</small></span>
+    </a>
+    <nav class="mainnav" aria-label="منوی اصلی">
+      <a href="#products">محصولات</a>
+      <a href="#how">چطور کار می‌کند</a>
+      <a href="#guide">راهنمای مونتاژ</a>
+      <a href="#contact">تماس و سفارش</a>
+    </nav>
+    <span class="hspace"></span>
+    <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" type="search" placeholder="جستجوی کیت‌ها: قفسه، کشو، میز…" autocomplete="off" aria-label="جستجوی کیت‌ها"></label>
+    <a class="iconbtn" id="cartIcon" href="#contact" aria-label="سبد سفارش"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14l-1.4 11H6.4z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg><span class="count num" data-count hidden></span></a>
+    <button class="iconbtn menuBtn" id="menuBtn" aria-label="منو"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<footer><div class="wrap">
+  <div class="about"><div class="logo" style="font-size:19px">ماجوکیت</div><p>کیت‌های ماژولار MDF برای خانه‌های ایرانی. خودت بساز، هر وقت خواستی گسترشش بده.</p></div>
+  <div><h4>محصولات</h4><ul><li><a href="#products" data-cat="shelves">قفسه</a></li><li><a href="#products" data-cat="storage">ذخیره‌سازی</a></li><li><a href="#products" data-cat="desk">میز و کار</a></li><li><a href="#products" data-cat="decor">دکور</a></li></ul></div>
+  <div><h4>یادگیری</h4><ul><li><a href="#how">چطور کار می‌کند</a></li><li><a href="#guide">راهنمای مونتاژ</a></li><li><a href="#blog">ایده‌ها</a></li><li><a href="#faq">سؤالات متداول</a></li></ul></div>
+  <div><h4>ماجوکیت</h4><ul><li><a href="#about">درباره‌ی ما</a></li><li><a href="#custom">سفارشی‌سازی (به‌زودی)</a></li><li><a href="#contact">تماس و سفارش</a></li></ul></div>
+</div></footer>
+
+<nav class="tabbar" aria-label="ناوبری پایین">
+  <a href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-6 8 6v8H4z"/><path d="M10 19v-5h4v5"/></svg>خانه</a>
+  <a href="#products" data-tab="products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><path d="M16.5 14v5M14 16.5h5"/></svg>کیت‌ها</a>
+  <a href="#guide" data-tab="guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19h8V6"/><path d="M5 4h12v16"/></svg>راهنما</a>
+  <a href="#contact" data-tab="contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14l-1.4 11H6.4z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>سبد<span class="count num" data-count hidden></span></a>
+  <a href="#" id="waTab" class="watab" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2A9.7 9.7 0 0 0 3.6 16.8L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7c-1.5 0-2.9-.4-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9z"/></svg>واتس‌اپ</a>
+</nav>
+<div class="sbuy" id="sbuy" hidden></div>
+
+<a class="wa" id="waFab" href="#" target="_blank" rel="noopener" aria-label="پشتیبانی و سفارش در واتس‌اپ">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2A9.7 9.7 0 0 0 3.6 16.8L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7c-1.5 0-2.9-.4-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.7-1.2.1-.1 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3c-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.6-.2z"/></svg>
+  <span>سفارش در واتس‌اپ</span>
+</a>
+
+<div id="layer"></div>
+<div id="arLayer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/assets/store.js"></script>
+</body>
+</html>
