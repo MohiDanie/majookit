@@ -2,15 +2,15 @@
 :root{
   --bg:#FAF8F5; --surface:#FFFFFF; --sand:#F3EDE6; --line:#EAE2D9; --ink:#2B2522; --muted:#7A6F66;
   --accent:#8C6A52; --accent-ink:#FFFFFF; --accent-soft:#F3EAE1; --mdf:#EAD9C6; --mdf-e:#C7AB90;
-  --ok:#3F7A4D; --ok-soft:#E6F0E8; --warn:#A8701A; --warn-soft:#F8EEDC; --bad:#B4432F; --bad-soft:#F8E4DF; --info:#3D6A8C; --info-soft:#E2ECF3;
+  --ok:#5F6E4F; --ok-soft:#EDF0E6; --warn:#A8701A; --warn-soft:#F8EEDC; --bad:#B4432F; --bad-soft:#F8E4DF; --info:#3D6A8C; --info-soft:#E2ECF3;
   --shadow:rgba(60,40,25,.10); --scrim:rgba(30,24,20,.45);
-  --font:"Vazirmatn","IRANYekan",Tahoma,sans-serif;
+  --font:"Vazirmatn","IRANYekan",Tahoma,sans-serif; --display:"Noto Kufi Arabic","Vazirmatn",Tahoma,sans-serif; --sage:#5F6E4F; --sage-soft:#EDF0E6;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#181513; --surface:#211D1A; --sand:#2A2522; --line:#36302B; --ink:#F1EBE5; --muted:#ADA196;
   --accent:#D4B79E; --accent-ink:#2A2019; --accent-soft:#33291F; --mdf:#D7C2AC; --mdf-e:#A88D73;
-  --ok:#7DC18E; --ok-soft:#1F3125; --warn:#E4B260; --warn-soft:#3A2D16; --bad:#EE8B78; --bad-soft:#3D221C; --info:#8DB8DA; --info-soft:#1C2C38;
-  --shadow:rgba(0,0,0,.4); --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+  --ok:#AFC09A; --ok-soft:#2A3124; --warn:#E4B260; --warn-soft:#3A2D16; --bad:#EE8B78; --bad-soft:#3D221C; --info:#8DB8DA; --info-soft:#1C2C38;
+  --shadow:rgba(0,0,0,.4); --scrim:rgba(0,0,0,.6); --sage:#AFC09A; --sage-soft:#2A3124; color-scheme:dark}}
 
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -212,3 +212,11 @@ tr.off td:not(:last-child){opacity:.55}
 .skel{height:120px;border-radius:12px;background:linear-gradient(90deg,var(--sand),var(--surface),var(--sand));background-size:200% 100%;animation:sk 1.2s infinite}
 @keyframes sk{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* typography */
+body{line-height:1.85;text-rendering:optimizeLegibility}
+h1,h2,h3,.brand,.kpi b{font-family:var(--display);letter-spacing:0}
+h1,h2{font-weight:700}
+.ph h1{font-size:clamp(22px,2.6vw,26px)}
+.kpi b{font-weight:700}
+.badge{font-family:var(--font)}

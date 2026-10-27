@@ -515,3 +515,41 @@ footer ul a{display:inline-block;padding-block:6px}
 .arlive{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border:0;border-radius:999px;background:#fff;color:#111;font-size:13px;font-weight:800}
 .arlive svg{width:18px;height:18px}
 .ar-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* --- typography + sage layer ---
+   Display: Noto Kufi Arabic (geometric kufic, headings only). Text: Vazirmatn.
+   Persian is a joined script: no letter-spacing on Persian text, generous line-height. */
+:root{
+  --display:"Noto Kufi Arabic","Vazirmatn",Tahoma,sans-serif;
+  --sage:#5F6E4F; --sage-soft:#EDF0E6;
+  --fs-xs:12px; --fs-sm:13.5px; --fs-base:15.5px; --fs-lg:17.5px;
+  --fs-xl:clamp(19px,2.2vw,22px); --fs-2xl:clamp(24px,3.2vw,32px); --fs-3xl:clamp(32px,5.2vw,52px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sage:#AFC09A;--sage-soft:#2A3124}}
+:root[data-theme="dark"]{--sage:#AFC09A;--sage-soft:#2A3124}
+body{font-size:var(--fs-base);line-height:1.9;text-rendering:optimizeLegibility;font-kerning:normal}
+h1,h2,h3,h4{font-family:var(--display);letter-spacing:0!important;font-weight:700!important;line-height:1.5}
+h3{font-weight:600!important}
+.hero h1{font-size:var(--fs-3xl);line-height:1.45;letter-spacing:0}
+.hero h1 .brand{font-size:.48em;font-weight:600;line-height:1.6}
+.sh h2,.pagehead h1,.pinfo h1,.arpromo h2,.donebox h1{font-size:var(--fs-2xl)}
+.trust h2,.connects h2{font-size:var(--fs-xl)!important}
+.pcard h3,.why h3,.flow h3,.post h3,.panel h3{font-size:var(--fs-base)}
+.pcard h3{font-weight:600!important}
+.lead{font-size:var(--fs-lg);line-height:1.95;max-width:58ch}
+p,.lead,.use,li,dd,summary{text-wrap:pretty}
+.eyebrow{font-size:var(--fs-xs);font-weight:700;color:var(--sage)}
+.price{font-weight:800}
+.stars{letter-spacing:0;color:var(--sage)}
+.logo small{letter-spacing:.14em}
+.btn{font-weight:700}
+details summary{font-family:var(--display);font-weight:600}
+/* sage: the one supporting colour — growth, expandability, assurance */
+.xbadge{color:var(--sage)}
+.xbadge.oos{color:var(--bg);background:var(--ink)}
+.feat,.assure svg,.trust li svg,.doneic,.arcta .ic svg,.why svg{color:var(--sage)}
+.arcta{background:var(--sage-soft)}
+.arbtn:hover{background:var(--sage-soft)}
+.cat .go{color:var(--sage)}
+.flow .n{color:var(--sage)}
+.formerr{border-inline-start-color:var(--sage)}
