@@ -1,21 +1,13 @@
 /* MajooKit storefront styles */
 *,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img,video{max-width:100%}[hidden]{display:none!important}
 /* Layout: minimal nude showroom in the IKEA mould — white page, borderless product grid on nude plinths, one quiet 3D stage as the special touch; AR-on-photo overlay; bottom tab bar + WhatsApp CTA on phones */
-:root{
+:root{color-scheme:light;
   --bg:#FFFFFF; --surface:#FFFFFF; --sand:#F5F0EA; --floor:#E9DED2; --ink:#2B2522; --muted:#7A6F66; --line:#ECE5DD;
   --olive:#8C6A52; --olive-ink:#FFFFFF; --olive-soft:#F3EAE1;
   --wood:#E3CDB8; --mdf:#EAD9C6; --mdf-e:#C7AB90; --shadow:rgba(90,65,45,.10); --scrim:rgba(30,24,20,.45);
   --font:"Vazirmatn","IRANYekan","Dana",Tahoma,sans-serif;
   --r:6px; --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#1C1917; --surface:#1C1917; --sand:#272220; --floor:#352E29; --ink:#F2ECE6; --muted:#ADA196; --line:#332D29;
-  --olive:#D4B79E; --olive-ink:#2A2019; --olive-soft:#2F2823;
-  --wood:#CDB49C; --mdf:#D7C2AC; --mdf-e:#A88D73; --shadow:rgba(0,0,0,.4); --scrim:rgba(0,0,0,.6); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#1C1917; --surface:#1C1917; --sand:#272220; --floor:#352E29; --ink:#F2ECE6; --muted:#ADA196; --line:#332D29;
-  --olive:#D4B79E; --olive-ink:#2A2019; --olive-soft:#2F2823;
-  --wood:#CDB49C; --mdf:#D7C2AC; --mdf-e:#A88D73; --shadow:rgba(0,0,0,.4); --scrim:rgba(0,0,0,.6); color-scheme:dark}
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -525,8 +517,6 @@ footer ul a{display:inline-block;padding-block:6px}
   --fs-xs:12px; --fs-sm:13.5px; --fs-base:15.5px; --fs-lg:17.5px;
   --fs-xl:clamp(19px,2.2vw,22px); --fs-2xl:clamp(24px,3.2vw,32px); --fs-3xl:clamp(32px,5.2vw,52px);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sage:#AFC09A;--sage-soft:#2A3124}}
-:root[data-theme="dark"]{--sage:#AFC09A;--sage-soft:#2A3124}
 body{font-size:var(--fs-base);line-height:1.9;text-rendering:optimizeLegibility;font-kerning:normal}
 h1,h2,h3,h4{font-family:var(--display);letter-spacing:0!important;font-weight:700!important;line-height:1.5}
 h3{font-weight:600!important}
@@ -637,3 +627,51 @@ details summary{font-family:var(--display);font-weight:600}
   .pdetails{max-width:none}
 }
 .accb .specs{margin-bottom:0}
+
+/* ===== UX/UI audit pass: type scale, spacing scale, contrast, targets ===== */
+:root{
+  --muted:#6B6058;
+  --fs-2xs:12.5px;
+  --h1:clamp(26px,3.4vw,36px); --h1-pdp:clamp(24px,2.8vw,30px); --h2:clamp(20px,2.2vw,26px); --h3:17px;
+  --sp-1:8px; --sp-2:16px; --sp-3:24px; --sp-4:40px; --sp-5:64px;
+}
+/* heading hierarchy: hero > h1 > h2 > h3 > body, one size per level */
+.pagehead h1,.donebox h1{font-size:var(--h1)}
+.pinfo .ptitle h1{font-size:var(--h1-pdp)}
+.sh h2,.sec,.connects h2,.pdetails summary,#view h2{font-size:var(--h2)}
+.pdetails details.acc summary{font-size:var(--h3)}
+#view h3,.panel h3{font-size:var(--h3);font-weight:600!important;line-height:1.6}
+.pcard h3{font-size:var(--fs-base)}
+/* minimum text size 12.5px for Persian script */
+.xbadge,.rt-badge,.reftag,.reftag span,.meta,.meta2,.eyebrow,.pdf,time,.tg small,.pcard small,.price small,.pprice span+*{font-size:var(--fs-2xs)}
+.pdf{min-width:34px}
+/* readable measure */
+#view p,#view li,.pdesc,.accb p{max-width:68ch}
+.pdetails{max-width:760px}
+/* spacing rhythm on an 8pt scale */
+#view section{padding-block:var(--sp-4)}
+#view section[style*="padding-top"]{padding-top:var(--sp-3)!important}
+.sh{margin-bottom:var(--sp-2)}
+.pagehead{margin-bottom:var(--sp-2)}
+.sec{margin-block:var(--sp-4) var(--sp-2)}
+@media (min-width:860px){#view section{padding-block:var(--sp-5)}#view section[style*="padding-top"]{padding-top:var(--sp-3)!important}.pd{padding-block:var(--sp-3) var(--sp-2)}}
+/* touch targets >= 44px on touch devices */
+@media (pointer:coarse){
+  .chip,.mainnav a,.sh .link,.reftag,.crumbs a,.serieslink,.avail,.asklink,footer ul a,#copyNum,.tabbar a,.btn,.heart,.qty button,summary,.link{min-height:44px}
+  .sh .link,.serieslink,.avail,.reftag,.crumbs a,.link{display:inline-flex;align-items:center}
+  .search input,#q{min-height:44px}
+  #copyNum{min-width:44px}
+}
+.search input,#q{min-height:44px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:3px}
+#view h2{font-size:var(--h2)!important;font-weight:700!important}
+#view h3{font-size:var(--h3)!important}
+#view .pcard h3{font-size:var(--fs-base)!important}
+.meta,.pcard .meta,.mini a small,.pcard small,time,.vthumb time,.manual .pdf,span.pdf,.manual span{font-size:var(--fs-2xs)!important}
+.pdf{color:#5A402E!important}
+.stars i{color:#BFB1A4}
+.allmedia,.refticket .btn,.btn.soft,.arbtn,.arbtn.add{min-height:44px}
+.arbtn,.arbtn.add{min-width:44px;width:44px;height:44px}
+.mainnav a,.sh .link,footer ul a{padding-inline:6px}
+#view section.hero,#view .hero{padding-top:var(--sp-3)!important}
+.sw{width:56px;height:56px}
