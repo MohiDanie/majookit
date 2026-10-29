@@ -53,3 +53,13 @@ test('settings update is reflected publicly', async () => {
   await req('/api/admin/settings', { method: 'PUT', body: { whatsapp_number: '+98 ۹۱۲ 111 2233', announcement: 'ارسال رایگان' } });
   const s = await req('/api/settings'); assert.equal(s.data.whatsapp_number, '989121112233'); assert.equal(s.data.announcement, 'ارسال رایگان');
 });
+
+test('three colours are offered and the chosen one is stored on the order', async () => {
+  const s = await req('/api/settings');
+  const colors = JSON.parse(s.data.colors);
+  assert.equal(colors.length, 3);
+  const r = await req('/api/orders', { method: 'POST', body: { name: 'تست', phone: '09120000000', city: 'تهران', items: [{ id: 1, qty: 1, color: 'white' }, { id: 1, qty: 1, color: 'bogus' }] } });
+  assert.equal(r.status, 200);
+  assert.equal(r.data.items[0].color, 'white');
+  assert.equal(r.data.items[1].color, 'natural');
+});

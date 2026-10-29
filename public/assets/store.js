@@ -109,7 +109,7 @@ function initMats(){
   const c=document.createElement('canvas'); c.width=c.height=256; const x=c.getContext('2d');
   x.fillStyle='#ECDCC8'; x.fillRect(0,0,256,256);
   for(let i=0;i<5000;i++){x.fillStyle=`rgba(${140+Math.random()*50|0},${95+Math.random()*35|0},55,${Math.random()*.09})`; x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*2.5,1+Math.random()*2.5);}
-  const tex=new T.CanvasTexture(c); tex.wrapS=tex.wrapT=T.RepeatWrapping; tex.encoding=T.sRGBEncoding; tex.anisotropy=4;
+  M.cv=c; const tex=new T.CanvasTexture(c); tex.wrapS=tex.wrapT=T.RepeatWrapping; tex.encoding=T.sRGBEncoding; tex.anisotropy=4;
   M.face=new T.MeshStandardMaterial({map:tex,roughness:.82,metalness:0});
   M.edge=new T.MeshStandardMaterial({color:lin('#C9AC8E'),roughness:.95});
   M.line=new T.LineBasicMaterial({color:lin('#9A6C3E'),transparent:true,opacity:.28});
@@ -230,7 +230,7 @@ const easeOutBack=t=>{const c=1.3;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,
 const VIEWERS=new Set();
 function makeViewer(host,type,opts={}){
   if(!HAS3D) return null;
-  initMats();
+  initMats(); if(CUR_COL) setMDF3D(CUR_COL);
   const renderer=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:!!opts.ar});
   renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputEncoding=T.sRGBEncoding;
   renderer.toneMapping=T.ACESFilmicToneMapping; renderer.toneMappingExposure=1.08;
@@ -491,6 +491,19 @@ function galleryBody(p){
   if(g==='steps') return stepsArt(p);
   return `<div class="video"><span class="play">${ico.play}</span><b style="color:var(--ink)">ویدیوی مونتاژ ${p.name}</b><span>۴۰ ثانیه، به‌زودی</span></div>`;
 }
+/* ===== colours (three MDF finishes) ===== */
+const DEF_COLORS=[{key:'natural',name:'MDF طبیعی',face:'#ECDCC8',edge:'#C9AC8E'},{key:'white',name:'سفید',face:'#F6F4F0',edge:'#D8D3CB'},{key:'dark',name:'قهوه‌ای تیره',face:'#5A4536',edge:'#3F3025'}];
+const COLORS=()=>{try{const a=JSON.parse(SET.colors||'null'); if(Array.isArray(a)&&a.length) return a;}catch(e){} return DEF_COLORS;};
+const colorBy=k=>COLORS().find(c=>c.key===k)||COLORS()[0];
+const cartKey=(id,col)=>(!col||col===COLORS()[0].key)?String(id):`${id}~${col}`;
+const keyParts=k=>{const [i,c]=String(k).split('~'); return {id:+i,color:colorBy(c).key};};
+const colorVars=c=>`--mdf:${c.face};--mdf-e:${c.edge}`;
+let CUR_COL=null;
+function setMDF3D(c){ CUR_COL=c; if(!HAS3D||!M.face||!M.cv) return; const x=M.cv.getContext('2d'); x.fillStyle=c.face; x.fillRect(0,0,256,256);
+  for(let i=0;i<5000;i++){x.fillStyle=`rgba(${140+Math.random()*50|0},${95+Math.random()*35|0},55,${Math.random()*.09})`; x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*2.5,1+Math.random()*2.5);}
+  if(M.face.map) M.face.map.needsUpdate=true; M.edge.color.copy(lin(c.edge)); }
+function applyColor(k){ const c=colorBy(k); S.col=c.key; const g=$('#gal'); if(g){ g.style.setProperty('--mdf',c.face); g.style.setProperty('--mdf-e',c.edge); } setMDF3D(c); const o=$('#optv'); if(o) o.textContent=c.name;
+  document.querySelectorAll('[data-col]').forEach(b=>{const on=b.dataset.col===c.key; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on);}); }
 const FAV_KEY='majoo-fav';
 let FAV=[]; try{FAV=JSON.parse(localStorage.getItem(FAV_KEY)||'[]')}catch(e){}
 const saveFav=()=>{try{localStorage.setItem(FAV_KEY,JSON.stringify(FAV))}catch(e){}};
@@ -541,18 +554,18 @@ function vProduct(id){
   return `<div class="wrap">
    <nav class="crumbs" aria-label="مسیر"><a href="#products" data-cat="all">محصولات</a><i>›</i><a href="#products" data-cat="${p.cat}">${CATS[p.cat]}</a><i>›</i><span aria-current="page">${p.name}</span></nav>
    <div class="pd enter">
-    <div class="gallery" id="gal">${gallery(p)}</div>
+    <div class="gallery" id="gal" style="${colorVars(colorBy(S.col))}">${gallery(p)}</div>
     <div class="pinfo">
       <a class="serieslink" href="#products" data-cat="${p.cat}">بیشتر از دسته‌ی ${CATS[p.cat]}</a>
       <div class="ptitle"><div><h1>${p.name}</h1><p class="psub">${p.use} <a class="dimlink" href="#measure">${dims}</a></p></div>
         <button class="heart" data-fav="${p.id}" aria-pressed="${fav}" aria-label="علاقه‌مندی">${icoHeart}</button></div>
       <div class="pprice"><b class="num">${fa(p.price)}</b><span>تومان</span></div>
       <div class="prate">${stars(p.diff)}<span>مونتاژ ${DIFF[p.diff]} · حدود ${fa(p.time)} دقیقه</span>${p.exp?`<span class="xbadge inline">+ قابل توسعه</span>`:''}</div>
-      <div class="opt"><b>جنس و رنگ</b><span class="optv">MDF طبیعی</span>
-        <div class="swatches"><button class="sw on" aria-pressed="true" aria-label="MDF طبیعی"><i></i></button></div></div>
+      <div class="opt"><b>انتخاب رنگ</b><span class="optv" id="optv">${colorBy(S.col).name}</span>
+        <div class="swatches" role="group" aria-label="رنگ">${COLORS().map(c=>`<button class="sw ${c.key===colorBy(S.col).key?'on':''}" data-col="${c.key}" aria-pressed="${c.key===colorBy(S.col).key}" aria-label="${c.name}" style="${colorVars(c)}"><span class="swart">${art(p.type)}</span></button>`).join('')}</div></div>
       <a class="rowlink" href="#custom"><span><b>خودت طراحی کن</b><small>ترکیب ماژول‌ها با ابزار طراحی ماجوکیت</small></span>${icoExt}</a>
       <div class="getit"><b>چطور تحویل بگیرم</b><a class="avail" href="${waLink(`سلام، ارسال «${p.raw.name}» به شهر من چقدر زمان می‌برد؟`)}" target="_blank" rel="noopener"><i class="dot ${p.inStock?'ok':'no'}"></i>${p.inStock?'موجود است · بررسی زمان و هزینه‌ی ارسال به شهر شما':'فعلاً ناموجود · خبرم کنید'}</a></div>
-      <div class="buy" id="buyMain"><div class="qty"><button data-pq="-1" aria-label="کمتر">−</button><output id="pq" class="num">${fa(S.qty)}</output><button data-pq="1" aria-label="بیشتر">+</button></div>${p.inStock?`<button class="btn olive pbag" data-add="${p.id}"><span>افزودن به سبد</span></button>`:`<a class="btn ghost" href="${waLink(`سلام، «${p.raw.name}» کی موجود می‌شود؟`)}" target="_blank" rel="noopener">ناموجود؛ خبرم کنید</a>`}</div>
+      <div class="buy" id="buyMain"><div class="qty"><button data-pq="-1" aria-label="کمتر">−</button><output id="pq" class="num">${fa(S.qty)}</output><button data-pq="1" aria-label="بیشتر">+</button></div>${p.inStock?`<button class="btn olive pbag" data-add="${p.id}" data-usecol><span>افزودن به سبد</span></button>`:`<a class="btn ghost" href="${waLink(`سلام، «${p.raw.name}» کی موجود می‌شود؟`)}" target="_blank" rel="noopener">ناموجود؛ خبرم کنید</a>`}</div>
       ${HAS3D?`<button class="arcta" data-ar="${p.id}"><span class="ic">${ico.ar}</span><span><b>در اتاق خودت ببین</b><small>عکس بگیر، کیت را رویش بچین و از نتیجه عکس بگیر</small></span></button>`:''}
       <div class="pbox">
         <div class="pbx"><b>ضمانت قطعه ${icoShield}</b><p>قطعه‌ی آسیب‌دیده یا کم‌شده را رایگان می‌فرستیم. عکسش را در واتس‌اپ بفرست.</p></div>
@@ -686,14 +699,14 @@ function vCustom(){return `<div class="wrap"><section style="padding-top:24px;di
     <button class="btn olive">خبرم کن</button><p class="demo">فقط برای خبر دادن درباره‌ی سفارشی‌سازی استفاده می‌شود.</p></form>
   </section></div>`;}
 function orderText(f={},code=''){
-  const ids=Object.keys(S.cart).map(Number).filter(id=>byId(id));
-  const lines=ids.map(id=>`- ${byId(id).raw.name} × ${fa(S.cart[id])}`).join('\n');
-  const sum=ids.reduce((a,id)=>a+byId(id).price*S.cart[id],0);
+  const ids=Object.keys(S.cart).filter(k=>byId(keyParts(k).id));
+  const lines=ids.map(k=>`- ${byId(keyParts(k).id).raw.name} (${colorBy(keyParts(k).color).name}) × ${fa(S.cart[k])}`).join('\n');
+  const sum=ids.reduce((a,k)=>a+byId(keyParts(k).id).price*S.cart[k],0);
   return `سلام ماجوکیت، می‌خواهم سفارش بدهم${code?` (کد ${code})`:''}:\n${lines||'- (هنوز کیتی انتخاب نکرده‌ام)'}\nجمع: ${fa(sum)} تومان\n\nنام: ${f.name||''}\nموبایل: ${f.phone||''}\nشهر: ${f.city||''}\nتوضیح: ${f.note||''}`;
 }
 function orderForm(){ return {name:$('#oname').value.trim(),phone:toLatin($('#ophone').value).trim(),city:$('#ocity').value.trim(),note:$('#onote').value.trim()}; }
 async function submitOrder(btn){
-  const ids=Object.keys(S.cart).filter(id=>byId(+id)); const err=$('#orderErr'); err.hidden=true;
+  const ids=Object.keys(S.cart).filter(k=>byId(keyParts(k).id)); const err=$('#orderErr'); err.hidden=true;
   if(!ids.length){ toast('سبد خالی است'); return; }
   const f=orderForm();
   if(!f.name){ err.hidden=false; err.textContent='نامت را بنویس تا سفارش را به اسم تو ثبت کنیم.'; $('#oname').focus(); return; }
@@ -701,7 +714,7 @@ async function submitOrder(btn){
   btn.disabled=true; btn.textContent='در حال ثبت…';
   const w=window.open('about:blank','_blank');
   try{
-    const r=await api('/api/orders',{items:ids.map(id=>({id:+id,qty:S.cart[id]})),...f});
+    const r=await api('/api/orders',{items:ids.map(k=>({id:keyParts(k).id,color:keyParts(k).color,qty:S.cart[k]})),...f});
     const link=waLink(orderText(f,r.code));
     if(w) w.location.href=link;
     S.cart={}; save(); counts(); updateWa();
@@ -710,15 +723,15 @@ async function submitOrder(btn){
   }catch(e){ if(w) w.close(); err.hidden=false; err.textContent=e.message; btn.disabled=false; btn.textContent='ثبت سفارش و ارسال در واتس‌اپ'; }
 }
 function vContact(){
-  const ids=Object.keys(S.cart).map(Number).filter(id=>S.cart[id]>0);
-  const sum=ids.reduce((a,id)=>a+byId(id).price*S.cart[id],0);
+  const ids=Object.keys(S.cart).filter(k=>S.cart[k]>0&&byId(keyParts(k).id));
+  const sum=ids.reduce((a,k)=>a+byId(keyParts(k).id).price*S.cart[k],0);
   return `<div class="wrap"><section style="padding-top:24px">
    <div class="eyebrow">تماس و سفارش</div>
    <div class="pagehead"><h1>سفارش از طریق واتس‌اپ</h1></div>
    <p class="lead" style="margin:8px 0 20px">سبدت را مرور کن، نام و شهرت را بنویس و دکمه را بزن. پیام آماده‌ی سفارش در واتس‌اپ باز می‌شود و ما زمان ارسال و هزینه را همان‌جا اعلام می‌کنیم.</p>
    <div class="info-grid c2">
     <div class="panel"><h3>سبد سفارش</h3>
-      ${ids.length?`<div>${ids.map(id=>{const p=byId(id);return `<div class="oline"><div class="th">${art(p.type)}</div><div><b>${p.name}</b><span class="num">${fa(p.price*S.cart[id])} تومان</span></div><div class="qty sm"><button data-cq="${id}" data-d="-1" aria-label="کمتر">−</button><output class="num">${fa(S.cart[id])}</output><button data-cq="${id}" data-d="1" aria-label="بیشتر">+</button></div></div>`}).join('')}</div>
+      ${ids.length?`<div>${ids.map(id=>{const kp=keyParts(id),p=byId(kp.id);return `<div class="oline"><div class="th" style="${colorVars(colorBy(kp.color))}">${art(p.type)}</div><div><b>${p.name} <small class="ocol">· ${colorBy(kp.color).name}</small></b><span class="num">${fa(p.price*S.cart[id])} تومان</span></div><div class="qty sm"><button data-cq="${id}" data-d="-1" aria-label="کمتر">−</button><output class="num">${fa(S.cart[id])}</output><button data-cq="${id}" data-d="1" aria-label="بیشتر">+</button></div></div>`}).join('')}</div>
       <div class="tot"><span>جمع کالاها</span><span class="num">${fa(sum)} تومان</span></div><p style="font-size:12.5px">${esc(SET.shipping_note)}</p>`
       :`<div class="empty" style="padding:28px 12px">سبد خالی است. <a class="link" href="#products">کیت‌ها را ببین</a> یا مستقیم در واتس‌اپ بپرس.</div>`}
     </div>
@@ -830,9 +843,9 @@ function route(){
   closeAR(); killViewers(); if(stickyIO){stickyIO.disconnect();stickyIO=null;} $('#sbuy').hidden=true;
   const h=(location.hash||'#home').slice(1);
   let html,key=h,pid=null;
-  if(/^p\d+$/.test(h)&&byId(+h.slice(1))){pid=+h.slice(1); if(S.galFor!==pid){const pp=byId(pid); S.gal=pp.images.length?'photo':(HAS3D?'3d':'img'); S.img=0; S.qty=1; S.galFor=pid;} html=vProduct(pid); key='products';}
+  if(/^p\d+$/.test(h)&&byId(+h.slice(1))){pid=+h.slice(1); if(S.galFor!==pid){const pp=byId(pid); S.gal=pp.images.length?'photo':(HAS3D?'3d':'img'); S.img=0; S.qty=1; S.galFor=pid; S.col=COLORS()[0].key;} html=vProduct(pid); key='products';}
   else {if(!VIEWS[h]) key='home'; html=VIEWS[key]();}
-  $('#view').innerHTML=html;
+  $('#view').innerHTML=html; setMDF3D(colorBy(pid?S.col:COLORS()[0].key));
   if(key==='products'&&!pid) fillProducts();
   if(key==='home') mountStage('heroStage','hero',{hero:true,auto:true,yaw:-.45,pitch:.22});
   if(key==='how') mountStage('howStage','cube',{auto:true});
@@ -846,7 +859,7 @@ function route(){
 }
 let stickyIO=null;
 function setupSticky(p){
-  const bar=$('#sbuy'); if(!p.inStock){bar.hidden=true;return;} bar.innerHTML=`<div class="sb-t"><b>${p.name}</b><span class="price">${toman(p.price)}</span></div><button class="btn olive" data-add="${p.id}">افزودن به سبد</button>`;
+  const bar=$('#sbuy'); if(!p.inStock){bar.hidden=true;return;} bar.innerHTML=`<div class="sb-t"><b>${p.name}</b><span class="price">${toman(p.price)}</span></div><button class="btn olive" data-add="${p.id}" data-usecol>افزودن به سبد</button>`;
   stickyIO=new IntersectionObserver(([e])=>{bar.hidden=e.isIntersecting||e.boundingClientRect.top>0;}); stickyIO.observe($('#buyMain'));
 }
 function updateWa(h=location.hash.slice(1)){
@@ -927,9 +940,10 @@ document.addEventListener('click',e=>{
   if(t.hasAttribute('data-allmedia')){ openAllMedia(byId(+location.hash.slice(2))); return; }
   if(t.dataset.fav){ const id=+t.dataset.fav, i=FAV.indexOf(id); if(i<0) FAV.push(id); else FAV.splice(i,1); saveFav(); t.setAttribute('aria-pressed',i<0); toast(i<0?'به علاقه‌مندی‌ها اضافه شد':'از علاقه‌مندی‌ها برداشته شد'); return; }
   if(t.getAttribute('href')==='#measure'){ e.preventDefault(); const d=$('#measure'); d.open=true; d.scrollIntoView({behavior:RM?'auto':'smooth',block:'center'}); return; }
+  if(t.dataset.col){ applyColor(t.dataset.col); return; }
   if(t.dataset.pq){ S.qty=Math.max(1,S.qty+(+t.dataset.pq)); const o=$('#pq'); o.textContent=fa(S.qty); o.classList.remove('roll'); void o.offsetWidth; o.classList.add('roll'); return; }
-  if(t.dataset.add){ const id=+t.dataset.add; const q=t.hasAttribute('data-one')?1:S.qty; S.cart[id]=(S.cart[id]||0)+q; save(); flyToCart(t.closest('.pcard')?.querySelector('.ph')||$('#gstage')||t,byId(id)); setTimeout(()=>counts(true),RM?0:650); updateWa(); toast(`«${byId(id).raw.name}» به سبد اضافه شد`); if(t.classList.contains('pbag')){ const sp=t.querySelector('span'); t.classList.add('done'); sp.textContent='✓ به سبد اضافه شد'; setTimeout(()=>{t.classList.remove('done'); sp.textContent='افزودن به سبد';},1700); } return; }
-  if(t.dataset.cq){ const id=+t.dataset.cq; S.cart[id]=Math.max(0,(S.cart[id]||0)+(+t.dataset.d)); if(!S.cart[id]) delete S.cart[id]; save(); const keep={name:$('#oname')?.value,phone:$('#ophone')?.value,city:$('#ocity')?.value,note:$('#onote')?.value}; route(); if(keep.name!=null){for(const k of ['name','phone','city','note']) $('#o'+k).value=keep[k]||'';} return; }
+  if(t.dataset.add){ const id=+t.dataset.add; const q=t.hasAttribute('data-one')?1:S.qty; const ck=cartKey(id,t.hasAttribute('data-usecol')?S.col:null); S.cart[ck]=(S.cart[ck]||0)+q; save(); flyToCart(t.closest('.pcard')?.querySelector('.ph')||$('#gstage')||t,byId(id)); setTimeout(()=>counts(true),RM?0:650); updateWa(); toast(`«${byId(id).raw.name}»${t.hasAttribute('data-usecol')?' ('+colorBy(S.col).name+')':''} به سبد اضافه شد`); if(t.classList.contains('pbag')){ const sp=t.querySelector('span'); t.classList.add('done'); sp.textContent='✓ به سبد اضافه شد'; setTimeout(()=>{t.classList.remove('done'); sp.textContent='افزودن به سبد';},1700); } return; }
+  if(t.dataset.cq){ const id=t.dataset.cq; S.cart[id]=Math.max(0,(S.cart[id]||0)+(+t.dataset.d)); if(!S.cart[id]) delete S.cart[id]; save(); const keep={name:$('#oname')?.value,phone:$('#ophone')?.value,city:$('#ocity')?.value,note:$('#onote')?.value}; route(); if(keep.name!=null){for(const k of ['name','phone','city','note']) $('#o'+k).value=keep[k]||'';} return; }
   if(t.id==='menuBtn'){ openMenu(); return; }
   if(t.id==='copyNum'){ navigator.clipboard?.writeText(waShow()).then(()=>toast('شماره کپی شد'),()=>toast('شماره را انتخاب و کپی کن')); return; }
   if(t.hasAttribute('data-close')&&t.tagName==='BUTTON'){ closeLayer(); return; }
@@ -963,7 +977,7 @@ document.addEventListener('pointermove',e=>{ const ph=e.target.closest?.('.photo
   }catch(e){
     $('#view').innerHTML=`<div class="wrap"><section><div class="empty">${esc(e.message)}. صفحه را دوباره بارگذاری کنید.</div></section></div>`; return;
   }
-  for(const id of Object.keys(S.cart)) if(!byId(+id)) delete S.cart[id];
+  for(const id of Object.keys(S.cart)) if(!byId(keyParts(id).id)) delete S.cart[id];
   if(SET.announcement){ const a=$('#announce'); a.textContent=SET.announcement; a.hidden=false; }
   route();
 })();

@@ -45,6 +45,8 @@ async function upload(file) {
 /* ---------- constants ---------- */
 const CATS = { shelves: 'قفسه', storage: 'ذخیره‌سازی', desk: 'میز و کار', decor: 'دکور' };
 const SPACES = { home: 'خانه', office: 'دفتر کار', small: 'فضاهای کوچک' };
+const DEFAULT_COLORS = [{ key: 'natural', name: 'MDF طبیعی', face: '#ECDCC8', edge: '#C9AC8E' }, { key: 'white', name: 'سفید', face: '#F6F4F0', edge: '#D8D3CB' }, { key: 'dark', name: 'قهوه‌ای تیره', face: '#5A4536', edge: '#3F3025' }];
+const colorList = (s) => { try { const a = JSON.parse(s.colors); if (Array.isArray(a) && a.length) return a; } catch (e) {} return DEFAULT_COLORS; };
 const MODELS = { cube: 'مکعب پایه', stair: 'قفسه پلکانی', column: 'کتابخانه ستونی', doorcube: 'مکعب با در', drawer: 'باکس کشو', shoe: 'جاکفشی', desk: 'میز تحریر', riser: 'رایزر', organizer: 'ارگانایزر', hex: 'شش‌ضلعی دیواری', plant: 'استند گیاه', key: 'جاکلیدی', wallfold: 'میز تاشو دیواری' };
 const STATUS = { new: 'جدید', confirmed: 'تأییدشده', shipped: 'ارسال‌شده', delivered: 'تحویل‌شده', canceled: 'لغوشده' };
 const LEADS = { guide: 'راهنمای رایگان', 'custom-notify': 'خبرم کن (سفارشی‌سازی)', question: 'سؤال' };
@@ -310,7 +312,7 @@ function openOrder(id) {
   <form class="drawer" id="oform" role="dialog" aria-modal="true" aria-label="سفارش ${esc(o.code)}">
     <header><h2>سفارش <span class="num" dir="ltr">${esc(o.code)}</span></h2><button type="button" class="btn icon ghost" data-close aria-label="بستن">✕</button></header>
     <div class="body">
-      <section class="sec"><h3>اقلام</h3><div class="items">${o.items.map((i) => `<div><span>${esc(i.name)} × ${fa(i.qty)}</span><span class="num">${money(i.price * i.qty)}</span></div>`).join('')}<div style="border-top:1px solid var(--line);padding-top:6px;font-weight:800"><span>جمع</span><span class="num">${money(o.total)}</span></div></div></section>
+      <section class="sec"><h3>اقلام</h3><div class="items">${o.items.map((i) => `<div><span>${esc(i.name)}${i.color_name ? ' · ' + esc(i.color_name) : ''} × ${fa(i.qty)}</span><span class="num">${money(i.price * i.qty)}</span></div>`).join('')}<div style="border-top:1px solid var(--line);padding-top:6px;font-weight:800"><span>جمع</span><span class="num">${money(o.total)}</span></div></div></section>
       <section class="sec"><h3>مشتری</h3><dl class="kv"><dt>نام</dt><dd>${esc(o.name) || '—'}</dd><dt>موبایل</dt><dd class="num" dir="ltr" style="text-align:right">${esc(o.phone) || '—'}</dd><dt>شهر</dt><dd>${esc(o.city) || '—'}</dd><dt>توضیح</dt><dd>${esc(o.note) || '—'}</dd><dt>ثبت</dt><dd>${when(o.created_at)}</dd></dl>
         <div class="tools">${wa ? `<a class="btn accent" href="${wa}" target="_blank" rel="noopener">${I.wa}پیام به مشتری در واتس‌اپ</a>` : ''}${o.phone ? `<a class="btn" href="tel:${esc(toLatin(o.phone))}">تماس</a>` : ''}</div></section>
       <section class="sec"><h3>وضعیت</h3>
@@ -354,6 +356,12 @@ async function viewSettings() {
         </div>
         <label class="field"><span>نوار اطلاعیه بالای سایت</span><input class="input" name="announcement" maxlength="200" value="${esc(s.announcement)}" placeholder="مثلاً ارسال رایگان تا پایان آذر"><small>خالی بگذارید تا نمایش داده نشود.</small></label>
         <label class="field"><span>توضیح هزینه‌ی ارسال (صفحه‌ی سفارش)</span><input class="input" name="shipping_note" maxlength="300" value="${esc(s.shipping_note)}"></label>
+        <h2 style="margin-top:8px">رنگ‌های MDF (برای همه‌ی کیت‌ها)</h2>
+        <p style="margin:0;color:var(--muted);font-size:13px">نام و دو رنگ هر گزینه را بنویسید: رنگ سطح و رنگ لبه. در فروشگاه روی مدل سه‌بعدی و تصویر اعمال می‌شود.</p>
+        <div id="colorRows" style="display:grid;gap:8px">${colorList(s).map((c, i) => `<div class="f2" style="grid-template-columns:1fr auto auto;align-items:end" data-ckey="${esc(c.key)}">
+          <label class="field"><span>رنگ ${fa(i + 1)}</span><input class="input" data-cname maxlength="30" value="${esc(c.name)}"></label>
+          <label class="field"><span>سطح</span><input type="color" data-cface value="${esc(c.face)}" style="height:40px;width:56px"></label>
+          <label class="field"><span>لبه</span><input type="color" data-cedge value="${esc(c.edge)}" style="height:40px;width:56px"></label></div>`).join('')}</div>
         <label class="switch"><input type="checkbox" name="show_reference" ${s.show_reference === '1' ? 'checked' : ''}> نمایش تیکت‌های مرجع ایکیا در فروشگاه</label>
         <div><button class="btn primary">ذخیره‌ی تنظیمات</button></div>
       </form>
@@ -368,6 +376,7 @@ async function viewSettings() {
     e.preventDefault(); const f = e.target; const body = {};
     for (const k of ['store_name', 'whatsapp_number', 'whatsapp_display', 'announcement', 'shipping_note']) body[k] = f.elements[k].value;
     body.show_reference = f.elements.show_reference.checked;
+    body.colors = [...f.querySelectorAll('[data-ckey]')].map((r) => ({ key: r.dataset.ckey, name: r.querySelector('[data-cname]').value, face: r.querySelector('[data-cface]').value, edge: r.querySelector('[data-cedge]').value }));
     try { App.settings = await api('/api/admin/settings', { method: 'PUT', body }); toast('تنظیمات ذخیره شد'); viewSettings(); } catch (x) { toast(x.message, true); }
   };
   $('#pwform').onsubmit = async (e) => {

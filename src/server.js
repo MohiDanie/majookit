@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { open } = require('./db');
+const { DEFAULT_COLORS } = require('./seed');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -131,12 +132,25 @@ function cleanProduct(b) {
     stock: int(b.stock, 0, 1e6), active: b.active === false ? 0 : 1, sort: int(b.sort, 0, 1e6)
   };
 }
+const HEX = /^#[0-9a-fA-F]{6}$/;
+function cleanColors(raw) {
+  let arr; try { arr = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { arr = null; }
+  if (!Array.isArray(arr) || !arr.length) return DEFAULT_COLORS;
+  const out = [], seen = new Set();
+  for (const c of arr.slice(0, 6)) {
+    const key = String(c?.key || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 20);
+    if (!key || seen.has(key) || !HEX.test(c.face) || !HEX.test(c.edge)) continue;
+    seen.add(key); out.push({ key, name: str(c.name, 30) || key, face: c.face, edge: c.edge });
+  }
+  return out.length ? out : DEFAULT_COLORS;
+}
+function getColors() { const r = db.prepare("SELECT value FROM settings WHERE key = 'colors'").get(); return cleanColors(r?.value); }
 function getSettings(publicOnly) {
   const rows = db.prepare('SELECT key, value FROM settings').all();
   const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
   if (!publicOnly) return s;
   return { store_name: s.store_name, whatsapp_number: s.whatsapp_number, whatsapp_display: s.whatsapp_display,
-    announcement: s.announcement, shipping_note: s.shipping_note, show_reference: s.show_reference };
+    announcement: s.announcement, shipping_note: s.shipping_note, show_reference: s.show_reference, colors: s.colors };
 }
 
 /* ---------- sessions + rate limit ---------- */
@@ -198,7 +212,12 @@ route('POST', '/api/orders', async (req) => {
   const list = Array.isArray(b.items) ? b.items.slice(0, 50) : [];
   const get = db.prepare('SELECT id, name, price FROM products WHERE id = ? AND active = 1');
   const items = [];
-  for (const it of list) { const p = get.get(int(it.id, 1)); const qty = int(it.qty, 1, 99); if (p) items.push({ id: p.id, name: p.name, price: p.price, qty }); }
+  const colors = getColors();
+  for (const it of list) {
+    const p = get.get(int(it.id, 1)); const qty = int(it.qty, 1, 99);
+    const col = colors.find((c) => c.key === it.color) || colors[0];
+    if (p) items.push({ id: p.id, name: p.name, price: p.price, qty, color: col.key, color_name: col.name });
+  }
   if (!items.length) throw bad('سبد خالی است');
   const total = items.reduce((a, i) => a + i.price * i.qty, 0);
   const code = orderCode();
@@ -308,7 +327,7 @@ route('GET', '/api/admin/orders.csv', (req, res) => {
   const rows = db.prepare('SELECT * FROM orders ORDER BY id DESC').all();
   const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const lines = [['code', 'date', 'status', 'name', 'phone', 'city', 'items', 'total_toman', 'note'].join(',')];
-  for (const o of rows) lines.push([o.code, o.created_at, o.status, o.name, o.phone, o.city, JSON.parse(o.items).map((i) => `${i.name} x${i.qty}`).join(' | '), o.total, o.note].map(esc).join(','));
+  for (const o of rows) lines.push([o.code, o.created_at, o.status, o.name, o.phone, o.city, JSON.parse(o.items).map((i) => `${i.name}${i.color_name ? ' (' + i.color_name + ')' : ''} x${i.qty}`).join(' | '), o.total, o.note].map(esc).join(','));
   send(res, 200, '﻿' + lines.join('\n'), { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="majookit-orders.csv"' });
   return undefined;
 });
@@ -322,10 +341,11 @@ route('DELETE', '/api/admin/leads/:id', (req, res, { id }) => { db.prepare('DELE
 route('GET', '/api/admin/settings', () => getSettings(false));
 route('PUT', '/api/admin/settings', async (req) => {
   const b = await readJson(req);
-  const allowed = { store_name: 60, whatsapp_number: 20, whatsapp_display: 30, announcement: 200, shipping_note: 300, show_reference: 1 };
+  const allowed = { store_name: 60, whatsapp_number: 20, whatsapp_display: 30, announcement: 200, shipping_note: 300, show_reference: 1, colors: 2000 };
   const up = db.prepare('INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
   for (const [k, max] of Object.entries(allowed)) if (k in b) {
-    let v = str(b[k], max);
+    let v = k === 'colors' ? '' : str(b[k], max);
+    if (k === 'colors') v = JSON.stringify(cleanColors(b[k]));
     if (k === 'whatsapp_number') v = toDigitsLatin(v).replace(/\D/g, '');
     if (k === 'show_reference') v = b[k] ? '1' : '0';
     up.run(k, v);

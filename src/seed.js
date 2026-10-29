@@ -18,13 +18,21 @@ const SEED_PRODUCTS = [
   { id: 13, name: 'میز تاشو دیواری', cat: 'desk', type: 'wallfold', spaces: ['small', 'office'], w: 80, d: 50, h: 75, exp: false, compat: [10, 12], diff: 3, time: 45, parts: 15, price: 3200000, use: 'باز که باشد میز کار است و بسته که باشد یک قفسه‌ی کم‌عمق روی دیوار', ref: ['NORBERG', 'میز تاشو دیواری', IK + 'norberg'] }
 ];
 
+// The three MDF finishes offered for every kit (editable in the admin panel: Settings > Colours).
+const DEFAULT_COLORS = [
+  { key: 'natural', name: 'MDF طبیعی', face: '#ECDCC8', edge: '#C9AC8E' },
+  { key: 'white', name: 'سفید', face: '#F6F4F0', edge: '#D8D3CB' },
+  { key: 'dark', name: 'قهوه‌ای تیره', face: '#5A4536', edge: '#3F3025' }
+];
+
 const DEFAULT_SETTINGS = {
   store_name: 'ماجوکیت',
   whatsapp_number: '989000000000',   // international format, digits only
   whatsapp_display: '+98 900 000 0000',
   announcement: '',
   shipping_note: 'هزینه‌ی ارسال بر اساس شهر در واتس‌اپ اعلام می‌شود.',
-  show_reference: '1'                 // show IKEA reference tickets on the storefront
+  show_reference: '1',                // show IKEA reference tickets on the storefront
+  colors: JSON.stringify(DEFAULT_COLORS)
 };
 
-module.exports = { SEED_PRODUCTS, DEFAULT_SETTINGS };
+module.exports = { SEED_PRODUCTS, DEFAULT_SETTINGS, DEFAULT_COLORS };
